@@ -2,6 +2,7 @@ package de.hikinggrass.WhoPlacedIt;
 
 import java.util.logging.Logger;
 
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
@@ -26,5 +27,10 @@ public class WhoPlacedItBlockListener extends BlockListener {
 		 * event.getBlock().getX() + " y: " + event.getBlock().getY() + " z: " + event.getBlock().getZ());
 		 */
 		manager.placeBlock(event.getBlockPlaced(), event.getPlayer());
+	}
+
+	@Override
+	public void onBlockBreak(BlockBreakEvent event) {
+		manager.removeBlock(event.getBlock(), event.getPlayer());
 	}
 }

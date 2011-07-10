@@ -22,19 +22,19 @@ public class Management {
 	}
 
 	public void placeBlock(Block block, Player player) {
-		if (this.getBlockInfo(block) != null) {
-			this.removeBlock(block);
-		}
+		/*
+		 * if (this.getBlockInfo(block) != null) { this.removeBlock(block); }
+		 */
 
 		if (this.mode == 2) {
 			this.store.placeBlock(block, player, System.currentTimeMillis());
 		}
-		
+
 	}
 
-	public void removeBlock(Block block) {
+	public void removeBlock(Block block, Player player) {
 		if (this.mode == 2) {
-			this.store.removeBlock(block, System.currentTimeMillis());
+			this.store.removeBlock(block, player, System.currentTimeMillis());
 		}
 	}
 

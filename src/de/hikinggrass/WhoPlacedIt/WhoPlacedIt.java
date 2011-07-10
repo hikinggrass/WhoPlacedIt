@@ -18,6 +18,7 @@ public class WhoPlacedIt extends JavaPlugin {
 		PluginManager pm = this.getServer().getPluginManager();
 
 		pm.registerEvent(Type.BLOCK_PLACE, blockListener, Priority.Normal, this);
+		pm.registerEvent(Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
 
 		pm.registerEvent(Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
 

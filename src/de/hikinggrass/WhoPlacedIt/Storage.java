@@ -49,7 +49,7 @@ public class Storage {
 		// Check if the table exists, if it doesn't create it
 		if (!this.manageSQLite.checkTable("trackedBlocks")) {
 			this.log.info("Creating table trackedBlocks");
-			String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, user VARCHAR(255), uuid VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT);";
+			String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT);";
 			this.manageSQLite.createTable(query);
 		}
 
@@ -63,8 +63,13 @@ public class Storage {
 	 * @param createTime
 	 */
 	public void placeBlock(Block block, Player player, long createTime) {
-		String query = "INSERT INTO trackedBlocks (user, uuid, x, y, z, createTime, removeTime) VALUES ('"
-				+ player.getName() + "','" + player.getUniqueId().toString() + "', " + block.getX() + ", "
+		String query = "INSERT INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime) VALUES ('"
+				+ player.getName()
+				+ "','"
+				+ player.getUniqueId().toString()
+				+ "', 'xxx','xxx', "
+				+ block.getX()
+				+ ", "
 				+ block.getY() + ", " + block.getZ() + ", " + createTime + ", " + 0 + ");";
 
 		if (this.mode == 1) {
@@ -80,8 +85,10 @@ public class Storage {
 	 * @param block
 	 * @param removeTime
 	 */
-	public void removeBlock(Block block, long removeTime) {
-		String query = "UPDATE trackedBlocks SET removeTime = " + removeTime + " WHERE x = " + block.getX()
+	public void removeBlock(Block block, Player player, long removeTime) {
+		log.info("remove player: " + player.getName());
+		String query = "UPDATE trackedBlocks SET removeTime = " + removeTime + ", removePlayer = '" + player.getName()
+				+ "', removePlayerUUID = '" + player.getUniqueId().toString() + "' WHERE x = " + block.getX()
 				+ " AND y = " + block.getY() + " AND z = " + block.getZ() + " AND removeTime = 0;";
 		if (this.mode == 1) {
 
@@ -115,8 +122,8 @@ public class Storage {
 					Date resultCreateDate = new Date(result.getLong("createTime"));
 					Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
-					user.add(result.getString("user") + " created on " + sdf.format(resultCreateDate) + " deleted on "
-							+ sdf.format(resultRemoveDate));
+					user.add(result.getString("createPlayer") + " created on " + sdf.format(resultCreateDate) + " "
+							+ result.getString("removePlayer") + " deleted on " + sdf.format(resultRemoveDate));
 
 				}
 			} catch (SQLException e) {
