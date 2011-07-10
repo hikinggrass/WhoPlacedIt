@@ -24,8 +24,6 @@ public class WhoPlacedIt extends JavaPlugin {
 	}
 
 	public void onDisable() {
-		this.manager.saveTrackedBlocks();
-		log.info("[WhoPlacedIt] TrackedBlocks haven been stored");
 		log.info("[WhoPlacedIt] Plugin has been disabled!");
 	}
 

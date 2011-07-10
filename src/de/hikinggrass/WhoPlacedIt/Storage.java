@@ -9,7 +9,9 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Logger;
 
 import org.bukkit.block.Block;
@@ -53,78 +55,16 @@ public class Storage {
 		// Check if the table exists, if it doesn't create it
 		if (!this.manageSQLite.checkTable("trackedBlocks")) {
 			this.log.info("Creating table trackedBlocks");
-			String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, user VARCHAR(255),uuid VARCHAR(255), x INT, y INT, z INT);";
+			String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, user VARCHAR(255), uuid VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT);";
 			this.manageSQLite.createTable(query);
 		}
 
 	}
 
-	public void save(ArrayList<TrackedBlock> trackedBlocks) {
-		try {
-			// Create directory and/or file if they don't exist
-			boolean directoryCreated = directory.mkdir();
-			boolean fileCreated = fileName.createNewFile();
-			if (directoryCreated) {
-				log.info("[WhoPlacedIt] directory did not exist, created it");
-			}
-			if (fileCreated) {
-				log.info("[WhoPlacedIt] file did not exist, created it");
-			}
-
-			// Serialize to a file
-			ObjectOutput out = new ObjectOutputStream(new FileOutputStream(fileName));
-			out.writeObject(trackedBlocks);
-			out.close();
-
-		} catch (IOException e) {
-		}
-
-	}
-
-	@SuppressWarnings("unchecked")
-	public ArrayList<TrackedBlock> load() {
-		ArrayList<TrackedBlock> trackedBlocks = null;
-		try {
-			// Deserialize from a file
-			ObjectInputStream in = new ObjectInputStream(new FileInputStream(fileName));
-			// Deserialize the object
-			trackedBlocks = (ArrayList<TrackedBlock>) in.readObject();
-			in.close();
-
-		} catch (ClassNotFoundException e) {
-		} catch (IOException e) {
-		}
-
-		return trackedBlocks;
-
-	}
-
-	public void saveSQL(ArrayList<TrackedBlock> trackedBlocks) {
-
-	}
-
-	@SuppressWarnings("unchecked")
-	public ArrayList<TrackedBlock> loadSQL() {
-		ArrayList<TrackedBlock> trackedBlocks = null;
-		try {
-			// Deserialize from a file
-			ObjectInputStream in = new ObjectInputStream(new FileInputStream(fileName));
-			// Deserialize the object
-			trackedBlocks = (ArrayList<TrackedBlock>) in.readObject();
-			in.close();
-
-		} catch (ClassNotFoundException e) {
-		} catch (IOException e) {
-		}
-
-		return trackedBlocks;
-
-	}
-
-	public void placeBlock(Block block, Player player) {
-		String query = "INSERT INTO trackedBlocks (user, uuid, x, y, z) VALUES ('" + player.getName() + "','"
-				+ player.getUniqueId().toString() + "', " + block.getX() + ", " + block.getY() + ", " + block.getZ()
-				+ ");";
+	public void placeBlock(Block block, Player player, long createTime) {
+		String query = "INSERT INTO trackedBlocks (user, uuid, x, y, z, createTime, removeTime) VALUES ('"
+				+ player.getName() + "','" + player.getUniqueId().toString() + "', " + block.getX() + ", "
+				+ block.getY() + ", " + block.getZ() + ", " + createTime + ", " + 0 + ");";
 
 		if (this.mode == 1) {
 
@@ -133,30 +73,37 @@ public class Storage {
 		}
 	}
 
-	public void removeBlock(Block block) {
-		String query = "DELETE FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY() + " AND z = "
-				+ block.getZ() + ";";
+	public void removeBlock(Block block, long removeTime) {
+		String query = "UPDATE trackedBlocks SET removeTime = " + removeTime + " WHERE x = " + block.getX()
+				+ " AND y = " + block.getY() + " AND z = " + block.getZ() + " AND removeTime = 0;";
 		if (this.mode == 1) {
 
 		} else {
-			this.manageSQLite.deleteQuery(query);
+			this.manageSQLite.updateQuery(query);
 		}
 	}
 
-	public String getBlockInfo(Block block) {
+	public ArrayList<String> getBlockInfo(Block block) {
 		String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
-				+ " AND z = " + block.getZ() + ";";
+				+ " AND z = " + block.getZ() + " LIMIT 3;";
 		ResultSet result = null;
-		String user = null;
+		ArrayList<String> user = new ArrayList<String>();
 
 		if (this.mode == 1) {
 
 		} else {
-			result = this.manageSQLite.sqlQuery(query);
 			try {
+				result = this.manageSQLite.sqlQuery(query);
 
-				if (result != null && result.next()) {
-					user = result.getString("user");
+				while (result != null && result.next()) {
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+					Date resultCreateDate = new Date(result.getLong("createTime"));
+					Date resultRemoveDate = new Date(result.getLong("removeTime"));
+
+					user.add(result.getString("user") + " created on " + sdf.format(resultCreateDate) + " deleted on "
+							+ sdf.format(resultRemoveDate));
+
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();

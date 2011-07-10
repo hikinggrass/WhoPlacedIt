@@ -17,6 +17,8 @@ public class TrackedBlock implements Serializable {
 	protected int blockLocationZ;
 	protected UUID uuid;
 	protected String playerName;
+	protected long createTime;
+	protected long removeTime;
 
 	/**
 	 * 
