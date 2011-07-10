@@ -25,9 +25,9 @@ public class WhoPlacedItPlayerListener extends PlayerListener {
 			// log.info("block is located at: x:" + event.getClickedBlock().getX() + " y: "
 			// + event.getClickedBlock().getY() + " z: " + event.getClickedBlock().getZ());
 			// log.info("now looking up in the database if this block is placed by another player...");
-			for (String name : this.manager.getBlockInfo(event.getClickedBlock())) {
+			for (BlockInfo name : this.manager.getBlockInfo(event.getClickedBlock(), event.getPlayer())) {
 				if (name != null) {
-					event.getPlayer().sendMessage("this block was placed by " + name);
+					event.getPlayer().sendMessage(name.getColor() + "this block was placed by " + name.getMessage());
 				}
 			}
 		}

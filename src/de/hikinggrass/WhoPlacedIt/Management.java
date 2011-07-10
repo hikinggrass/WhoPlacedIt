@@ -38,9 +38,9 @@ public class Management {
 		}
 	}
 
-	public ArrayList<String> getBlockInfo(Block block) {
+	public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
 		if (this.mode == 2) {
-			return this.store.getBlockInfo(block);
+			return this.store.getBlockInfo(block,player);
 		}
 
 		return null;

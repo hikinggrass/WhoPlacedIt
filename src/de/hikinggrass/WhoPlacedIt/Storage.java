@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -67,7 +68,7 @@ public class Storage {
 				+ player.getName()
 				+ "','"
 				+ player.getUniqueId().toString()
-				+ "', 'xxx','xxx', "
+				+ "', '','', "
 				+ block.getX()
 				+ ", "
 				+ block.getY() + ", " + block.getZ() + ", " + createTime + ", " + 0 + ");";
@@ -104,11 +105,11 @@ public class Storage {
 	 * @param block
 	 * @return
 	 */
-	public ArrayList<String> getBlockInfo(Block block) {
+	public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
 		String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
 				+ " AND z = " + block.getZ() + " LIMIT 3;";
 		ResultSet result = null;
-		ArrayList<String> user = new ArrayList<String>();
+		ArrayList<BlockInfo> user = new ArrayList<BlockInfo>();
 
 		if (this.mode == 1) {
 
@@ -122,8 +123,19 @@ public class Storage {
 					Date resultCreateDate = new Date(result.getLong("createTime"));
 					Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
-					user.add(result.getString("createPlayer") + " created on " + sdf.format(resultCreateDate) + " "
-							+ result.getString("removePlayer") + " deleted on " + sdf.format(resultRemoveDate));
+					String info = " created on " + sdf.format(resultCreateDate);
+					if (!result.getString("removePlayer").isEmpty()) {
+						info = info + " deleted by " + result.getString("removePlayer") + " on "
+								+ sdf.format(resultRemoveDate);
+					}
+					BlockInfo createPlayer;
+					if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
+						createPlayer = new BlockInfo(ChatColor.GREEN, "You" + info);
+					} else {
+						createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer") + info);
+					}
+
+					user.add(createPlayer);
 
 				}
 			} catch (SQLException e) {
