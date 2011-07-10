@@ -55,6 +55,13 @@ public class Storage {
 
 	}
 
+	/**
+	 * writes the information into the database that a block has been placed by the given player at the given time
+	 * 
+	 * @param block
+	 * @param player
+	 * @param createTime
+	 */
 	public void placeBlock(Block block, Player player, long createTime) {
 		String query = "INSERT INTO trackedBlocks (user, uuid, x, y, z, createTime, removeTime) VALUES ('"
 				+ player.getName() + "','" + player.getUniqueId().toString() + "', " + block.getX() + ", "
@@ -67,6 +74,12 @@ public class Storage {
 		}
 	}
 
+	/**
+	 * Sets the remove time of the given block
+	 * 
+	 * @param block
+	 * @param removeTime
+	 */
 	public void removeBlock(Block block, long removeTime) {
 		String query = "UPDATE trackedBlocks SET removeTime = " + removeTime + " WHERE x = " + block.getX()
 				+ " AND y = " + block.getY() + " AND z = " + block.getZ() + " AND removeTime = 0;";
@@ -77,6 +90,13 @@ public class Storage {
 		}
 	}
 
+	/**
+	 * Returns information about the given block in the following format: <br />
+	 * USERNAME created on yyyy-MM-dd HH:mm:ss deleted on yyyy-MM-dd HH:mm:ss
+	 * 
+	 * @param block
+	 * @return
+	 */
 	public ArrayList<String> getBlockInfo(Block block) {
 		String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
 				+ " AND z = " + block.getZ() + " LIMIT 3;";
