@@ -20,7 +20,8 @@ public class WhoPlacedItPlayerListener extends PlayerListener {
 	}
 
 	public void onPlayerInteract(PlayerInteractEvent event) {
-		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)
+				&& this.manager.getInHand().contains(event.getPlayer().getItemInHand().getTypeId())) {
 			// log.info("right clicked on block" + event.getClickedBlock().getTypeId());
 			// log.info("block is located at: x:" + event.getClickedBlock().getX() + " y: "
 			// + event.getClickedBlock().getY() + " z: " + event.getClickedBlock().getZ());

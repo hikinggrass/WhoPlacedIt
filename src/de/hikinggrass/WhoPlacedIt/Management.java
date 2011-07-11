@@ -11,14 +11,15 @@ public class Management {
 	protected Logger log;
 	Storage store;
 
-	protected int mode = 2;
+	protected int mode;
 
 	/**
 	 * 
 	 */
 	public Management(Logger log) {
 		super();
-		this.store = new Storage(log, mode);
+		this.store = new Storage(log);
+		this.mode = this.store.getMode();
 	}
 
 	public void placeBlock(Block block, Player player) {
@@ -40,9 +41,13 @@ public class Management {
 
 	public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
 		if (this.mode == 2) {
-			return this.store.getBlockInfo(block,player);
+			return this.store.getBlockInfo(block, player);
 		}
 
 		return null;
+	}
+
+	public ArrayList<Integer> getInHand() {
+		return this.store.getInHand();
 	}
 }

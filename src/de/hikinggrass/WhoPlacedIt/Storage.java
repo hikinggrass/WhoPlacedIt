@@ -1,11 +1,15 @@
 package de.hikinggrass.WhoPlacedIt;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -22,9 +26,13 @@ public class Storage {
 
 	static String mainDirectory = "plugins" + File.separator + "WhoPlacedIt";
 	static File directory = new File(mainDirectory);
-	static File fileName = new File(mainDirectory + File.separator + "TrackedBlocks.dat");
+	static File fileName = new File(mainDirectory + File.separator + "WhoPlacedIt.properties");
 
 	private int mode; // 0 = File, 1 = MySQL, 2 = SQLite
+
+	private ArrayList<Integer> inHand;
+
+	private Properties properties = new Properties();
 
 	Logger log;
 
@@ -35,9 +43,14 @@ public class Storage {
 	/**
 	 * 
 	 */
-	public Storage(Logger log, int mode) {
+	public Storage(Logger log) {
 		this.log = log;
-		this.mode = mode;
+		this.inHand = new ArrayList<Integer>();
+		this.loadProperties();
+
+		if (this.properties.getProperty("database").equals("sqlite")) {
+			this.mode = 2;
+		}
 
 		this.log.info("SQLite Initializing");
 
@@ -54,6 +67,48 @@ public class Storage {
 			this.manageSQLite.createTable(query);
 		}
 
+	}
+
+	/**
+	 * @return the mode
+	 */
+	public int getMode() {
+		return mode;
+	}
+
+	private void loadProperties() {
+		// Read properties file.
+		try {
+			properties.load(new FileInputStream(fileName));
+		} catch (IOException e) {
+			// store default values
+			log.info("[WhoPlacedIt] Error, found no properties file, creating one with default values");
+			properties.setProperty("database", "sqlite");
+			properties.setProperty("triggerItem", "280,50,266");
+			// Write properties file.
+			try {
+				properties.store(new FileOutputStream(fileName), null);
+			} catch (IOException ex) {
+			}
+		}
+
+	}
+
+	/**
+	 * @return the inHand
+	 */
+	public ArrayList<Integer> getInHand() {
+		if (inHand.isEmpty()) {
+			String triggerItem = this.properties.getProperty("triggerItem");
+			for (String split : triggerItem.split(",")) {
+				try {
+					this.inHand.add(Integer.valueOf(split.trim()));
+				} catch (NumberFormatException e) {
+					// silently fail
+				}
+			}
+		}
+		return inHand;
 	}
 
 	/**
