@@ -164,8 +164,8 @@ public class Storage {
 	public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
 		String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
 				+ " AND z = " + block.getZ() + " ORDER BY createTime DESC LIMIT ";
-		
-		if(properties.getProperty("enableHistory").equals("true")) {
+
+		if (properties.getProperty("enableHistory").equals("true")) {
 			query += "3;";
 		} else {
 			query += "1;";
@@ -185,20 +185,23 @@ public class Storage {
 					Date resultCreateDate = new Date(result.getLong("createTime"));
 					Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
-					String info = " placed this block on " + sdf.format(resultCreateDate) + "\n";
+					String info = "";
 					if (!result.getString("removePlayer").isEmpty()) {
 						if (result.getString("removePlayerUUID").equals(player.getUniqueId().toString())) {
 							info += "You";
 						} else {
 							info += result.getString("removePlayer");
 						}
-						info += " removed this block on " + sdf.format(resultRemoveDate);
+						info += " removed this block on " + sdf.format(resultRemoveDate) + "\n";
 					}
 					BlockInfo createPlayer;
+
 					if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
-						createPlayer = new BlockInfo(ChatColor.GREEN, "You" + info);
+						createPlayer = new BlockInfo(ChatColor.GREEN, info + "You placed this block on "
+								+ sdf.format(resultCreateDate) + "\n");
 					} else {
-						createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer") + info);
+						createPlayer = new BlockInfo(ChatColor.YELLOW, info + result.getString("createPlayer")
+								+ " placed this block on " + sdf.format(resultCreateDate));
 					}
 
 					user.add(createPlayer);
