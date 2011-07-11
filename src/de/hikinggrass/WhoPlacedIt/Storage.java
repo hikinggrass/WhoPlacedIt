@@ -52,7 +52,7 @@ public class Storage {
 			this.mode = 2;
 		}
 
-		this.log.info("SQLite Initializing");
+		this.log.info("[WhoPlacedIt] SQLite Initializing");
 
 		// Declare SQLite handler
 		this.manageSQLite = new sqlCore(this.log, "[SQL INFO]", "WhoPlacedIt", directory.getPath());
