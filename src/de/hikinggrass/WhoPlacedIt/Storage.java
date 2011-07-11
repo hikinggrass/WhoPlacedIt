@@ -84,7 +84,8 @@ public class Storage {
 			// store default values
 			log.info("[WhoPlacedIt] Error, found no properties file, creating one with default values");
 			properties.setProperty("database", "sqlite");
-			properties.setProperty("triggerItem", "280,50,266");
+			properties.setProperty("triggerItem", "280");
+			properties.setProperty("dateFormat", "yyyy-MM-dd HH:mm:ss");
 			// Write properties file.
 			try {
 				properties.store(new FileOutputStream(fileName), null);
@@ -172,12 +173,12 @@ public class Storage {
 				result = this.manageSQLite.sqlQuery(query);
 
 				while (result != null && result.next()) {
-					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					SimpleDateFormat sdf = new SimpleDateFormat(this.properties.getProperty("dateFormat"));
 
 					Date resultCreateDate = new Date(result.getLong("createTime"));
 					Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
-					String info = "placed this block on " + sdf.format(resultCreateDate) + "\n";
+					String info = " placed this block on " + sdf.format(resultCreateDate) + "\n";
 					if (!result.getString("removePlayer").isEmpty()) {
 						if (result.getString("removePlayerUUID").equals(player.getUniqueId().toString())) {
 							info += "You";
@@ -188,7 +189,7 @@ public class Storage {
 					}
 					BlockInfo createPlayer;
 					if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
-						createPlayer = new BlockInfo(ChatColor.GREEN, "You " + info);
+						createPlayer = new BlockInfo(ChatColor.GREEN, "You" + info);
 					} else {
 						createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer") + info);
 					}
