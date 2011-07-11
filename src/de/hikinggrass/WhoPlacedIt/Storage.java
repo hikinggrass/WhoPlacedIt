@@ -123,14 +123,19 @@ public class Storage {
 					Date resultCreateDate = new Date(result.getLong("createTime"));
 					Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
-					String info = " created on " + sdf.format(resultCreateDate);
+					String info = "placed this block on " + sdf.format(resultCreateDate);
 					if (!result.getString("removePlayer").isEmpty()) {
-						info = info + " deleted by " + result.getString("removePlayer") + " on "
-								+ sdf.format(resultRemoveDate);
+						info += ", removed by ";
+						if (result.getString("removePlayerUUID").equals(player.getUniqueId().toString())) {
+							info += "You";
+						} else {
+							info += result.getString("removePlayer");
+						}
+						info += " on " + sdf.format(resultRemoveDate);
 					}
 					BlockInfo createPlayer;
 					if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
-						createPlayer = new BlockInfo(ChatColor.GREEN, "You" + info);
+						createPlayer = new BlockInfo(ChatColor.GREEN, "You " + info);
 					} else {
 						createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer") + info);
 					}
