@@ -85,6 +85,7 @@ public class Storage {
 			properties.setProperty("database", "sqlite");
 			properties.setProperty("triggerItem", "280");
 			properties.setProperty("dateFormat", "yyyy-MM-dd HH:mm:ss");
+			properties.setProperty("enableHistory", "true");
 			// Write properties file.
 			try {
 				properties.store(new FileOutputStream(fileName), null);
@@ -162,7 +163,13 @@ public class Storage {
 	 */
 	public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
 		String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
-				+ " AND z = " + block.getZ() + " LIMIT 3;";
+				+ " AND z = " + block.getZ() + " ORDER BY createTime DESC LIMIT ";
+		
+		if(properties.getProperty("enableHistory").equals("true")) {
+			query += "3;";
+		} else {
+			query += "1;";
+		}
 		ResultSet result = null;
 		ArrayList<BlockInfo> user = new ArrayList<BlockInfo>();
 
