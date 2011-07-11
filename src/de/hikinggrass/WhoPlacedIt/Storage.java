@@ -87,7 +87,6 @@ public class Storage {
 	 * @param removeTime
 	 */
 	public void removeBlock(Block block, Player player, long removeTime) {
-		log.info("remove player: " + player.getName());
 		String query = "UPDATE trackedBlocks SET removeTime = " + removeTime + ", removePlayer = '" + player.getName()
 				+ "', removePlayerUUID = '" + player.getUniqueId().toString() + "' WHERE x = " + block.getX()
 				+ " AND y = " + block.getY() + " AND z = " + block.getZ() + " AND removeTime = 0;";
@@ -123,15 +122,14 @@ public class Storage {
 					Date resultCreateDate = new Date(result.getLong("createTime"));
 					Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
-					String info = "placed this block on " + sdf.format(resultCreateDate);
+					String info = "placed this block on " + sdf.format(resultCreateDate) + "\n";
 					if (!result.getString("removePlayer").isEmpty()) {
-						info += ", removed by ";
 						if (result.getString("removePlayerUUID").equals(player.getUniqueId().toString())) {
 							info += "You";
 						} else {
 							info += result.getString("removePlayer");
 						}
-						info += " on " + sdf.format(resultRemoveDate);
+						info += " removed this block on " + sdf.format(resultRemoveDate);
 					}
 					BlockInfo createPlayer;
 					if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
