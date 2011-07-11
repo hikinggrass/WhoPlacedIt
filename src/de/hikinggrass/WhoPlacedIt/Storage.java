@@ -28,7 +28,7 @@ public class Storage {
 	static File directory = new File(mainDirectory);
 	static File fileName = new File(mainDirectory + File.separator + "WhoPlacedIt.properties");
 
-	private int mode; // 0 = File, 1 = MySQL, 2 = SQLite
+	private int mode; // 1 = MySQL, 2 = SQLite
 
 	private ArrayList<Integer> inHand;
 
@@ -66,7 +66,6 @@ public class Storage {
 			String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT);";
 			this.manageSQLite.createTable(query);
 		}
-
 	}
 
 	/**
@@ -90,6 +89,7 @@ public class Storage {
 			try {
 				properties.store(new FileOutputStream(fileName), null);
 			} catch (IOException ex) {
+				log.info("[WhoPlacedIt] Error, could not write properties file");
 			}
 		}
 
@@ -195,13 +195,11 @@ public class Storage {
 					}
 
 					user.add(createPlayer);
-
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
+				log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
 			}
 		}
 		return user;
-
 	}
 }
