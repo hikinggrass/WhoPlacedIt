@@ -9,13 +9,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class WhoPlacedIt extends JavaPlugin {
 	protected static final String version = "0.2";
-	
+
 	protected Logger log = Logger.getLogger("Minecraft");
 
 	protected Management manager = new Management(log);
 
 	public void onEnable() {
-		log.info("[WhoPlacedIt] Plugin has been enabled!");
+		log.info("[WhoPlacedIt] WhoPlacedIt " + version + " enabled!");
 
 		PluginManager pm = this.getServer().getPluginManager();
 
@@ -27,7 +27,7 @@ public class WhoPlacedIt extends JavaPlugin {
 	}
 
 	public void onDisable() {
-		log.info("[WhoPlacedIt] Plugin has been disabled!");
+		log.info("[WhoPlacedIt] WhoPlacedIt " + version + " disabled!");
 	}
 
 	private final WhoPlacedItPlayerListener playerListener = new WhoPlacedItPlayerListener(this, log, manager);
