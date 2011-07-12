@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -190,16 +191,16 @@ public class Storage {
 						} else {
 							info += result.getString("removePlayer");
 						}
-						info += " removed this block on " + sdf.format(resultRemoveDate) + "\n";
+						info += " removed this block on " + sdf.format(resultRemoveDate) ;
 					}
 					BlockInfo createPlayer;
 
 					if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
-						createPlayer = new BlockInfo(ChatColor.GREEN, info + "You placed this block on "
-								+ sdf.format(resultCreateDate) + "\n");
+						createPlayer = new BlockInfo(ChatColor.GREEN, "You placed this block on "
+								+ sdf.format(resultCreateDate) + "\n"+info );
 					} else {
-						createPlayer = new BlockInfo(ChatColor.YELLOW, info + result.getString("createPlayer")
-								+ " placed this block on " + sdf.format(resultCreateDate));
+						createPlayer = new BlockInfo(ChatColor.YELLOW,  result.getString("createPlayer")
+								+ " placed this block on " + sdf.format(resultCreateDate)+info);
 					}
 
 					user.add(createPlayer);
@@ -208,6 +209,8 @@ public class Storage {
 				log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
 			}
 		}
+	    Collections.reverse(user);
+
 		return user;
 	}
 }
