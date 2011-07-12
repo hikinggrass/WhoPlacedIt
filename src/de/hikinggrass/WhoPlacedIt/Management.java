@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 public class Management {
 
 	protected Logger log;
-	Storage store;
+	protected Storage store;
 
 	protected int mode;
 

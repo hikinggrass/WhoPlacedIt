@@ -24,21 +24,19 @@ import com.alta189.sqlLibrary.SQLite.sqlCore;
  */
 public class Storage {
 
-	static String mainDirectory = "plugins" + File.separator + "WhoPlacedIt";
-	static File directory = new File(mainDirectory);
-	static File fileName = new File(mainDirectory + File.separator + "WhoPlacedIt.properties");
+	protected static String mainDirectory = "plugins" + File.separator + "WhoPlacedIt";
+	protected static File directory = new File(mainDirectory);
+	protected static File fileName = new File(mainDirectory + File.separator + "WhoPlacedIt.properties");
 
-	private int mode; // 1 = MySQL, 2 = SQLite
+	protected int mode; // 1 = MySQL, 2 = SQLite
 
-	private ArrayList<Integer> inHand;
+	protected ArrayList<Integer> inHand;
 
-	private Properties properties = new Properties();
+	protected Properties properties = new Properties();
 
-	Logger log;
+	protected Logger log;
 
-	public sqlCore manageSQLite;
-
-	public Boolean MySQL = false;
+	protected sqlCore manageSQLite;
 
 	/**
 	 * 

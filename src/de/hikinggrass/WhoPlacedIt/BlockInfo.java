@@ -3,8 +3,8 @@ package de.hikinggrass.WhoPlacedIt;
 import org.bukkit.ChatColor;
 
 public class BlockInfo {
-	ChatColor color;
-	String message;
+	protected ChatColor color;
+	protected String message;
 	/**
 	 * @param color
 	 * @param message
