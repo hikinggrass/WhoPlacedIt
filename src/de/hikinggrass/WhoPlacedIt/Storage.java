@@ -55,10 +55,13 @@ public class Storage {
 		this.inHand = new ArrayList<Integer>();
 		this.loadProperties();
 
-		if (this.properties.getProperty("database").equals("mysql")) {
-			if (this.properties.getProperty("mysqlHost").equals("")
+		if (this.properties.getProperty("database") != null && this.properties.getProperty("database").equals("mysql")) {
+			if (this.properties.getProperty("mysqlHost") == null || this.properties.getProperty("mysqlHost").equals("")
+					|| this.properties.getProperty("mysqlUser") == null
 					|| this.properties.getProperty("mysqlUser").equals("")
+					|| this.properties.getProperty("mysqlPassword") == null
 					|| this.properties.getProperty("mysqlPassword").equals("")
+					|| this.properties.getProperty("mysqlDatabase") == null
 					|| this.properties.getProperty("mysqlDatabase").equals("")) {
 				this.mode = 2;
 			} else {
@@ -88,6 +91,7 @@ public class Storage {
 			try {
 				if (this.manageMySQL.checkConnection()) { // Check if the Connection was successful
 					this.log.info("[WhoPlacedIt] MySQL connection successful");
+
 					if (!this.manageMySQL.checkTable("trackedBlocks")) { // Check if the table exists in the database if
 																		 // not
 						// create it
@@ -99,6 +103,9 @@ public class Storage {
 					this.log.severe("[WhoPlacedIt] MySQL connection failed, falling back to sqlite");
 					this.mode = 2;
 				}
+			} catch (NullPointerException e) {
+				log.severe("[WhoPlacedIt] Could not establish connection to mysql server, falling back to sqlite");
+				this.mode = 2;
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			} catch (InstantiationException e) {
@@ -143,6 +150,7 @@ public class Storage {
 			properties.setProperty("triggerItem", "280");
 			properties.setProperty("dateFormat", "yyyy-MM-dd HH:mm:ss");
 			properties.setProperty("enableHistory", "true");
+			properties.setProperty("enableStats", "true");
 			properties.setProperty("mysqlHost", "localhost");
 			properties.setProperty("mysqlUser", "");
 			properties.setProperty("mysqlPassword", "");
@@ -154,7 +162,15 @@ public class Storage {
 				log.info("[WhoPlacedIt] Error, could not write properties file");
 			}
 		}
-
+		if (properties.getProperty("enableHistory") == null) {
+			properties.setProperty("enableHistory", "true");
+		}
+		if (properties.getProperty("enableStats") == null) {
+			properties.setProperty("enableStats", "true");
+		}
+		if (this.properties.getProperty("dateFormat") == null) {
+			properties.setProperty("dateFormat", "yyyy-MM-dd HH:mm:ss");
+		}
 	}
 
 	/**
