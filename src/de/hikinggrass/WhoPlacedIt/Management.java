@@ -23,28 +23,15 @@ public class Management {
 	}
 
 	public void placeBlock(Block block, Player player) {
-		/*
-		 * if (this.getBlockInfo(block) != null) { this.removeBlock(block); }
-		 */
-
-		if (this.mode == 2) {
-			this.store.placeBlock(block, player, System.currentTimeMillis());
-		}
-
+		this.store.placeBlock(block, player, System.currentTimeMillis());
 	}
 
 	public void removeBlock(Block block, Player player) {
-		if (this.mode == 2) {
-			this.store.removeBlock(block, player, System.currentTimeMillis());
-		}
+		this.store.removeBlock(block, player, System.currentTimeMillis());
 	}
 
 	public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
-		if (this.mode == 2) {
-			return this.store.getBlockInfo(block, player);
-		}
-
-		return null;
+		return this.store.getBlockInfo(block, player);
 	}
 
 	public ArrayList<Integer> getInHand() {
