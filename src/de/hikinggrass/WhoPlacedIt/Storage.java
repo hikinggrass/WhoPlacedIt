@@ -298,4 +298,60 @@ public class Storage {
 
 		return user;
 	}
+
+	public int getPlacedBlockCount(Player player) {
+		String query = "SELECT COUNT(id) AS rowcount FROM trackedBlocks WHERE createTime != '' AND createPlayerUUID = '"
+				+ player.getUniqueId().toString() + "'";
+		ResultSet result = null;
+
+		if (this.mode == 1) {
+			try {
+				result = this.manageMySQL.sqlQuery(query);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		} else {
+			result = this.manageSQLite.sqlQuery(query);
+		}
+		try {
+			while (result != null && result.next()) {
+				return result.getInt("rowcount");
+			}
+		} catch (SQLException e) {
+			log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
+		}
+		return 0;
+	}
+
+	public int getRemovedBlockCount(Player player) {
+		String query = "SELECT COUNT(id) AS rowcount FROM trackedBlocks WHERE removeTime != '' AND removePlayerUUID = '"
+				+ player.getUniqueId().toString() + "'";
+		ResultSet result = null;
+
+		if (this.mode == 1) {
+			try {
+				result = this.manageMySQL.sqlQuery(query);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		} else {
+			result = this.manageSQLite.sqlQuery(query);
+		}
+		try {
+			while (result != null && result.next()) {
+				return result.getInt("rowcount");
+			}
+		} catch (SQLException e) {
+			log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
+		}
+		return 0;
+	}
 }

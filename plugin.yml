@@ -2,3 +2,5 @@ name: WhoPlacedIt
 main: de.hikinggrass.WhoPlacedIt.WhoPlacedIt
 version: 0.2.2
 commands:
+    wpistats:
+        description: Display how many blocks you placed and removed.

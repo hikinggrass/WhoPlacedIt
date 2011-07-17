@@ -37,4 +37,12 @@ public class Management {
 	public ArrayList<Integer> getInHand() {
 		return this.store.getInHand();
 	}
+
+	public int getPlacedBlockCount(Player player) {
+		return this.store.getPlacedBlockCount(player);
+	}
+
+	public int getRemovedBlockCount(Player player) {
+		return this.store.getRemovedBlockCount(player);
+	}
 }
