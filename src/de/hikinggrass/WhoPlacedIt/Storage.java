@@ -302,7 +302,7 @@ public class Storage {
 							+ sdf.format(resultCreateDate) + "\n" + info);
 				} else {
 					createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer")
-							+ " placed this block on " + sdf.format(resultCreateDate) + info);
+							+ " placed this block on " + sdf.format(resultCreateDate) + "\n" + info);
 				}
 
 				user.add(createPlayer);
