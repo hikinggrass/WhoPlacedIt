@@ -187,6 +187,7 @@ public class Storage {
 			properties.setProperty("triggerItem", "280");
 			properties.setProperty("dateFormat", "yyyy-MM-dd HH:mm:ss");
 			properties.setProperty("enableHistory", "true");
+			properties.setProperty("historyEntries", "3");
 			properties.setProperty("enableStats", "true");
 			properties.setProperty("mysqlHost", "localhost");
 			properties.setProperty("mysqlUser", "");
@@ -207,6 +208,9 @@ public class Storage {
 		}
 		if (this.properties.getProperty("dateFormat") == null) {
 			properties.setProperty("dateFormat", "yyyy-MM-dd HH:mm:ss");
+		}
+		if (this.properties.getProperty("historyEntries") == null) {
+			properties.setProperty("historyEntries", "3");
 		}
 	}
 
@@ -356,7 +360,7 @@ public class Storage {
 				+ " AND z = " + block.getZ() + " ORDER BY createTime DESC LIMIT ";
 
 		if (properties.getProperty("enableHistory").equals("true")) {
-			query += "3;";
+			query += this.properties.getProperty("historyEntries") + ";";
 		} else {
 			query += "1;";
 		}
