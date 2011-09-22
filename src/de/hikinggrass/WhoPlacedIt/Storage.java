@@ -321,7 +321,7 @@ public class Storage {
 						+ block.getY()
 						+ ", "
 						+ block.getZ()
-						+ ", " + 0 + ", " + removeTime + ", 'fire');";
+						+ ", " + removeTime + ", " + removeTime + ", 'fire');";
 
 			}
 		} catch (SQLException e1) {
@@ -383,33 +383,41 @@ public class Storage {
 				Date resultCreateDate = new Date(result.getLong("createTime"));
 				Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
-				String info = "";
-				if (!result.getString("removePlayer").isEmpty()) {
-					if (result.getString("removePlayerUUID").equals(player.getUniqueId().toString())) {
-						info += "You";
-					} else {
-						info += result.getString("removePlayer");
-					}
-					info += " removed this block on " + sdf.format(resultRemoveDate);
-				} else if (result.getString("cause").equals("fire")) {
-					info += "Fire burnt this block on " + sdf.format(resultRemoveDate);
-				}
-				BlockInfo createPlayer;
-
+				BlockInfo createPlayer = null;
 				if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
 					createPlayer = new BlockInfo(ChatColor.GREEN, "You placed this block on "
-							+ sdf.format(resultCreateDate) + "\n" + info);
-				} else {
+							+ sdf.format(resultCreateDate), resultCreateDate);
+				} else if (!result.getString("createPlayerUUID").equals("")) {
 					createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer")
-							+ " placed this block on " + sdf.format(resultCreateDate) + "\n" + info);
+							+ " placed this block on " + sdf.format(resultCreateDate), resultCreateDate);
 				}
+				BlockInfo removePlayer = null;
 
-				user.add(createPlayer);
+				if (!result.getString("removePlayer").isEmpty()) {
+					if (result.getString("removePlayerUUID").equals(player.getUniqueId().toString())) {
+						removePlayer = new BlockInfo(ChatColor.GREEN, "You removed this block on "
+								+ sdf.format(resultRemoveDate), resultRemoveDate);
+					} else {
+						removePlayer = new BlockInfo(ChatColor.YELLOW, result.getString("removePlayer")
+								+ " removed this block on " + sdf.format(resultRemoveDate), resultRemoveDate);
+					}
+				} else if (result.getString("cause").equals("fire")) {
+					removePlayer = new BlockInfo(ChatColor.RED, "Fire burnt this block on "
+							+ sdf.format(resultRemoveDate), resultRemoveDate);
+					;
+
+				}
+				if (createPlayer != null) {
+					user.add(createPlayer);
+				}
+				if (removePlayer != null) {
+					user.add(removePlayer);
+				}
 			}
 		} catch (SQLException e) {
 			log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
 		}
-		Collections.reverse(user);
+		Collections.sort(user);
 
 		return user;
 	}
