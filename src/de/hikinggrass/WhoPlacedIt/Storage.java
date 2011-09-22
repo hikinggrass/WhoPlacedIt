@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -96,9 +97,20 @@ public class Storage {
 																		 // not
 						// create it
 						this.log.info("[WhoPlacedIt] Creating table trackedBlocks");
-						String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT,PRIMARY KEY (id));";
+						String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT, cause VARCHAR(255) NOT NULL DEFAULT 'player', PRIMARY KEY (id));";
 						this.manageMySQL.createTable(query); // Use mysqlCore.createTable(query) to create tables
 					}
+
+					String query = "SHOW COLUMNS FROM trackedBlocks LIKE 'cause'";
+					ResultSet result = null;
+					result = this.manageMySQL.sqlQuery(query);
+
+					if (result == null || !result.next()) {
+						this.log.info("[WhoPlacedIt] Missing Database field cause, adding it");
+						query = "ALTER TABLE trackedBlocks ADD cause VARCHAR(255) NOT NULL DEFAULT 'player';";
+						this.manageMySQL.updateQuery(query);
+					}
+
 				} else {
 					this.log.severe("[WhoPlacedIt] MySQL connection failed, falling back to sqlite");
 					this.mode = 2;
@@ -112,6 +124,8 @@ public class Storage {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
+			} catch (SQLException e) {
+				log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
 			}
 		}
 		if (this.mode == 2) {
@@ -125,9 +139,32 @@ public class Storage {
 
 			// Check if the table exists, if it doesn't create it
 			if (!this.manageSQLite.checkTable("trackedBlocks")) {
-				this.log.info("Creating table trackedBlocks");
-				String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT);";
+				this.log.info("[WhoPlacedIt] Creating table trackedBlocks");
+				String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT, cause VARCHAR(255) NOT NULL DEFAULT 'player');";
 				this.manageSQLite.createTable(query);
+			}
+
+			String query = "SELECT * FROM trackedBlocks;";
+			ResultSet result = null;
+			result = this.manageSQLite.sqlQuery(query);
+			ResultSetMetaData resultMetaData;
+			try {
+				resultMetaData = result.getMetaData();
+				int columnCount = resultMetaData.getColumnCount();
+				boolean cause = false;
+				for (int i = 1; i < columnCount + 1; i++) {
+					if (resultMetaData.getColumnName(i).equals("cause")) {
+						cause = true;
+						break;
+					}
+				}
+				if (!cause) {
+					this.log.info("[WhoPlacedIt] Missing Database field cause, adding it");
+					query = "ALTER TABLE trackedBlocks ADD cause VARCHAR(255) NOT NULL DEFAULT 'player';";
+					this.manageSQLite.updateQuery(query);
+				}
+			} catch (SQLException e) {
+				log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
 			}
 		}
 	}
