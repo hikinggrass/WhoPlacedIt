@@ -31,7 +31,6 @@ public class WhoPlacedItBlockListener extends BlockListener {
 
 	@Override
 	public void onBlockBurn(BlockBurnEvent event) {
-		log.info("block burned");
 		manager.burnBlock(event.getBlock());
 	}
 }
