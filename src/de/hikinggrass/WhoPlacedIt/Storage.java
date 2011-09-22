@@ -311,11 +311,11 @@ public class Storage {
 						+ " AND removeTime = 0;";
 			} else {
 				log.info("burn block was placed by the game");
-				query = "INSERT INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime, cause) VALUES ('"
-						+ "''"
-						+ "','"
-						+ "''"
-						+ "', '','', "
+				query = "INSERT INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime, cause) VALUES ("
+						+ "'',"
+						+ "'',"
+						+ "'',"
+						+ "'',"
 						+ block.getX()
 						+ ", "
 						+ block.getY()
