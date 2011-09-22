@@ -4,3 +4,11 @@ version: 0.3
 commands:
     wpistats:
         description: Display how many blocks you placed and removed.
+permissions:
+    whoplacedit.*:
+        description: Gives access to the WhoPlacedIt features
+        children:
+            whoplacedit.magicstick: true
+    whoplacedit.magicstick:
+        description: Enables the WhoPlacedIt Magic Stick
+        default: true

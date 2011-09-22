@@ -20,21 +20,19 @@ public class WhoPlacedItPlayerListener extends PlayerListener {
 	}
 
 	public void onPlayerInteract(PlayerInteractEvent event) {
-		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)
-				&& (this.manager.getInHand().isEmpty() || this.manager.getInHand().contains(
+		if (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+			if (event.getPlayer().hasPermission("whoplacedit.magicstick")) {
+				if ((this.manager.getInHand().isEmpty() || this.manager.getInHand().contains(
 						event.getPlayer().getItemInHand().getTypeId()))) {
-			// log.info("right clicked on block" + event.getClickedBlock().getTypeId());
-			// log.info("block is located at: x:" + event.getClickedBlock().getX() + " y: "
-			// + event.getClickedBlock().getY() + " z: " + event.getClickedBlock().getZ());
-			// log.info("now looking up in the database if this block is placed by another player...");
-			for (BlockInfo name : this.manager.getBlockInfo(event.getClickedBlock(), event.getPlayer())) {
-				if (name != null) {
-					for (String line : name.getMessage().split("\n")) {
-						event.getPlayer().sendMessage(name.getColor() + line);
+					for (BlockInfo name : this.manager.getBlockInfo(event.getClickedBlock(), event.getPlayer())) {
+						if (name != null) {
+							for (String line : name.getMessage().split("\n")) {
+								event.getPlayer().sendMessage(name.getColor() + line);
+							}
+						}
 					}
 				}
 			}
 		}
 	}
-
 }
