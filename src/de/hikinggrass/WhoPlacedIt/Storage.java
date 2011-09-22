@@ -284,6 +284,66 @@ public class Storage {
 		}
 	}
 
+	public void burnBlock(Block block, long removeTime) {
+		String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
+				+ " AND z = " + block.getZ() + " AND removeTime = 0 LIMIT 1";
+		ResultSet result = null;
+
+		if (this.mode == 1) {
+			try {
+				result = this.manageMySQL.sqlQuery(query);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		} else {
+			result = this.manageSQLite.sqlQuery(query);
+		}
+
+		try {
+			if (result != null && result.next()) {
+				log.info("burnt block was placed by player");
+				query = "UPDATE trackedBlocks SET removeTime = " + removeTime + ", cause = 'fire' WHERE x = "
+						+ block.getX() + " AND y = " + block.getY() + " AND z = " + block.getZ()
+						+ " AND removeTime = 0;";
+			} else {
+				log.info("burn block was placed by the game");
+				query = "INSERT INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime, cause) VALUES ('"
+						+ "''"
+						+ "','"
+						+ "''"
+						+ "', '','', "
+						+ block.getX()
+						+ ", "
+						+ block.getY()
+						+ ", "
+						+ block.getZ()
+						+ ", " + 0 + ", " + removeTime + ", 'fire');";
+
+			}
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		if (this.mode == 1) {
+			try {
+				this.manageMySQL.updateQuery(query);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		} else {
+			this.manageSQLite.updateQuery(query);
+		}
+	}
+
 	/**
 	 * Returns information about the given block in the following format: <br />
 	 * USERNAME created on yyyy-MM-dd HH:mm:ss deleted on yyyy-MM-dd HH:mm:ss
@@ -331,6 +391,8 @@ public class Storage {
 						info += result.getString("removePlayer");
 					}
 					info += " removed this block on " + sdf.format(resultRemoveDate);
+				} else if (result.getString("cause").equals("fire")) {
+					info += "Fire burnt this block on " + sdf.format(resultRemoveDate);
 				}
 				BlockInfo createPlayer;
 

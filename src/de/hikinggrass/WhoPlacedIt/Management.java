@@ -30,6 +30,10 @@ public class Management {
 		this.store.removeBlock(block, player, System.currentTimeMillis());
 	}
 
+	public void burnBlock(Block block) {
+		this.store.burnBlock(block, System.currentTimeMillis());
+	}
+
 	public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
 		return this.store.getBlockInfo(block, player);
 	}
