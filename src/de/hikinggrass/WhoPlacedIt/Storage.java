@@ -330,12 +330,10 @@ public class Storage {
 
 		try {
 			if (result != null && result.next()) {
-				log.info("burnt block was placed by player");
 				query = "UPDATE trackedBlocks SET removeTime = " + removeTime + ", cause = 'fire', blockTypeID = "
 						+ block.getTypeId() + " WHERE x = " + block.getX() + " AND y = " + block.getY() + " AND z = "
 						+ block.getZ() + " AND removeTime = 0;";
 			} else {
-				log.info("burn block was placed by the game");
 				query = "INSERT INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime, cause,blockTypeID) VALUES ("
 						+ "'',"
 						+ "'',"
