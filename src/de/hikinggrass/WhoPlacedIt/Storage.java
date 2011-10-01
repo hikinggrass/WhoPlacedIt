@@ -16,6 +16,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -406,26 +407,41 @@ public class Storage {
 				Date resultCreateDate = new Date(result.getLong("createTime"));
 				Date resultRemoveDate = new Date(result.getLong("removeTime"));
 
+				int blockTypeID = Integer.parseInt(result.getString("blockTypeID"));
+				String blockName = "unknown";
+				String prefix;
+				if (blockTypeID >= 0) {
+					blockName = Material.getMaterial(blockTypeID).toString().toLowerCase().replace("_", " ");
+				}
+
+				if (blockName.startsWith("a") || blockName.startsWith("e") || blockName.startsWith("i")
+						|| blockName.startsWith("o") || blockName.startsWith("u")) {
+					prefix = "an";
+				} else {
+					prefix = "a";
+				}
+
 				BlockInfo createPlayer = null;
 				if (result.getString("createPlayerUUID").equals(player.getUniqueId().toString())) {
-					createPlayer = new BlockInfo(ChatColor.GREEN, "You placed this block on "
-							+ sdf.format(resultCreateDate), resultCreateDate);
+					createPlayer = new BlockInfo(ChatColor.GREEN, "You placed " + prefix + " " + blockName
+							+ " block on " + sdf.format(resultCreateDate), resultCreateDate);
 				} else if (!result.getString("createPlayerUUID").equals("")) {
-					createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer")
-							+ " placed this block on " + sdf.format(resultCreateDate), resultCreateDate);
+					createPlayer = new BlockInfo(ChatColor.YELLOW, result.getString("createPlayer") + " placed "
+							+ prefix + " " + blockName + " block on " + sdf.format(resultCreateDate), resultCreateDate);
 				}
 				BlockInfo removePlayer = null;
 
 				if (!result.getString("removePlayer").isEmpty()) {
 					if (result.getString("removePlayerUUID").equals(player.getUniqueId().toString())) {
-						removePlayer = new BlockInfo(ChatColor.GREEN, "You removed this block on "
-								+ sdf.format(resultRemoveDate), resultRemoveDate);
+						removePlayer = new BlockInfo(ChatColor.GREEN, "You removed " + prefix + " " + blockName
+								+ " block on " + sdf.format(resultRemoveDate), resultRemoveDate);
 					} else {
-						removePlayer = new BlockInfo(ChatColor.YELLOW, result.getString("removePlayer")
-								+ " removed this block on " + sdf.format(resultRemoveDate), resultRemoveDate);
+						removePlayer = new BlockInfo(ChatColor.YELLOW, result.getString("removePlayer") + " removed "
+								+ prefix + " " + blockName + " block on " + sdf.format(resultRemoveDate),
+								resultRemoveDate);
 					}
 				} else if (result.getString("cause").equals("fire")) {
-					removePlayer = new BlockInfo(ChatColor.RED, "Fire burnt this block on "
+					removePlayer = new BlockInfo(ChatColor.RED, "Fire burnt " + prefix + " " + blockName + " block on "
 							+ sdf.format(resultRemoveDate), resultRemoveDate);
 					;
 
