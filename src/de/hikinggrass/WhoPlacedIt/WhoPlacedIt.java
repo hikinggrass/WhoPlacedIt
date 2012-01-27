@@ -13,7 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class WhoPlacedIt extends JavaPlugin {
 
-    protected static final String version = "0.5";
+    protected static final String version = "0.6";
     protected Logger log = Logger.getLogger("Minecraft");
     protected Management manager = new Management(log);
 

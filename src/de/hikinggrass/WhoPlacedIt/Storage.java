@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Logger;
+import java.lang.Boolean;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -24,9 +25,8 @@ import com.alta189.sqlLibrary.MySQL.mysqlCore;
 import com.alta189.sqlLibrary.SQLite.sqlCore;
 
 /**
- * This Class manages the storage of the data that is produced in this plugin,
- * at the moment the data is saved in a simple file, later this data will be put
- * into a database (mysql/sqlite)
+ * This Class manages the storage of the data that is stored into a database
+ * (mysql/sqlite)
  */
 public class Storage {
 
@@ -48,6 +48,9 @@ public class Storage {
      *
      */
     public Storage(Logger log) {
+        String query = "";
+        String queryExt = "";
+        ResultSet result = null;
         this.log = log;
         this.inHand = new ArrayList<Integer>();
         this.loadProperties();
@@ -89,33 +92,163 @@ public class Storage {
                 if (this.manageMySQL.checkConnection()) { // Check if the Connection was successful
                     this.log.info("[WhoPlacedIt] MySQL connection successful");
 
-                    if (!this.manageMySQL.checkTable("trackedBlocks")) { // Check if the table exists in the database if
-                        // not
-                        // create it
+                    if (!this.manageMySQL.checkTable("trackedBlocks")) {
+                        // Check if the table exists in the database if
+                        // not create it
                         this.log.info("[WhoPlacedIt] Creating table trackedBlocks");
-                        String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT, cause VARCHAR(255) NOT NULL DEFAULT 'player', blockTypeID INT NOT NULL DEFAULT -1, PRIMARY KEY (id));";
+
+                        query = "CREATE TABLE IF NOT EXISTS `trackedBlocks` ( `id` int(11) NOT NULL AUTO_INCREMENT, "
+                                + "`createPlayer` varchar(255) DEFAULT NULL, `createPlayerUUID` varchar(32) DEFAULT NULL, "
+                                + "`removePlayer` varchar(255) DEFAULT NULL, `removePlayerUUID` varchar(32) DEFAULT NULL, "
+                                + "`x` DOUBLE DEFAULT NULL, `y` DOUBLE DEFAULT NULL, `z` DOUBLE DEFAULT NULL, "
+                                + "`createTime` bigint(20) DEFAULT NULL, `removeTime` bigint(20) DEFAULT NULL, "
+                                + "`cause` varchar(255) NOT NULL DEFAULT 'player', "
+                                + "`blockTypeID` int(11) NOT NULL DEFAULT -1,"
+                                + "PRIMARY KEY (`id`), "
+                                + "KEY `placedBlockCount` (`createTime`,`createPlayerUUID`), "
+                                + "KEY `removedBlockCount` (`removeTime`,`removePlayerUUID`), "
+                                + "KEY `xyz` (`x`,`y`,`z`), KEY `xyzremove` (`x`,`y`,`z`,`removeTime`)) ENGINE=MyISAM;";
+
                         this.manageMySQL.createTable(query); // Use mysqlCore.createTable(query) to create tables
                     }
 
-                    String query = "SHOW COLUMNS FROM trackedBlocks LIKE 'cause'";
-                    ResultSet result = null;
-                    result = this.manageMySQL.sqlQuery(query);
-
-                    if (result == null || !result.next()) {
-                        this.log.info("[WhoPlacedIt] Missing Database field cause, adding it");
-                        query = "ALTER TABLE trackedBlocks ADD cause VARCHAR(255) NOT NULL DEFAULT 'player';";
-                        this.manageMySQL.updateQuery(query);
-                    }
-
-                    query = "SHOW COLUMNS FROM trackedBlocks LIKE 'blockTypeID'";
+                    this.log.info("[WhoPlacedIt] Checking if Database is up-to-date..");
+                    //Check if database has the right columns..
+                    query = "SHOW COLUMNS FROM `trackedBlocks`;";
                     result = null;
                     result = this.manageMySQL.sqlQuery(query);
 
-                    if (result == null || !result.next()) {
-                        this.log.info("[WhoPlacedIt] Missing Database field blockTypeID, adding it");
-                        query = "ALTER TABLE trackedBlocks ADD blockTypeID INT NOT NULL DEFAULT -1;";
+                    Boolean hasCause = false;
+                    Boolean hasBlockTypeID = false;
+                    Boolean isXdouble = false;
+                    Boolean isYdouble = false;
+                    Boolean isZdouble = false;
+
+                    //loop through columns..
+                    while (result != null && result.next()) {
+                        String field = "";
+                        String type = "";
+                        field = result.getString("Field");
+                        type = result.getString("Type");
+                        if ("cause".equals(field)) {
+                            hasCause = true;
+                        } else if ("blockTypeID".equals(field)) {
+                            hasBlockTypeID = true;
+                        }
+                        if ("x".equals(field)) {
+                            if ("double".equals(type)) {
+                                isXdouble = true;
+                            }
+                        }
+                        if ("y".equals(field)) {
+                            if ("double".equals(type)) {
+                                isYdouble = true;
+                            }
+                        }
+                        if ("z".equals(field)) {
+                            if ("double".equals(type)) {
+                                isZdouble = true;
+                            }
+                        }
+                    }
+
+                    if (!isXdouble || !isYdouble || !isZdouble) {
+                        query = "ALTER TABLE  `trackedBlocks` ";
+                        //CHANGE  `x`  `x` DOUBLE NULL DEFAULT NULL
+                        if (!isXdouble) {
+                            queryExt += "CHANGE  `x`  `x` DOUBLE NULL DEFAULT NULL ";
+                        }
+                        //CHANGE  `y`  `y` DOUBLE NULL DEFAULT NULL
+                        if (!isYdouble) {
+                            if (!"".equals(queryExt)) {
+                                queryExt += ", ";
+                            }
+                            queryExt += "CHANGE  `y`  `y` DOUBLE NULL DEFAULT NULL";
+                        }
+                        //CHANGE  `z`  `z` DOUBLE NULL DEFAULT NULL
+                        if (!isZdouble) {
+                            if (!"".equals(queryExt)) {
+                                queryExt += ", ";
+                            }
+                            queryExt += "CHANGE  `z`  `z` DOUBLE NULL DEFAULT NULL";
+                        }
+                        this.log.info("[WhoPlacedIt] Updating Database fields..");
+                        this.manageMySQL.updateQuery(query + queryExt);
+                    }
+                    //add missing columns..
+                    if (!hasCause) {
+                        this.log.info("[WhoPlacedIt] Missing Database field 'cause', adding it");
+                        query = "ALTER TABLE `trackedBlocks` ADD `cause` VARCHAR(255) NOT NULL DEFAULT 'player';";
                         this.manageMySQL.updateQuery(query);
                     }
+
+                    if (!hasBlockTypeID) {
+                        this.log.info("[WhoPlacedIt] Missing Database field 'blockTypeID', adding it");
+                        query = "ALTER TABLE `trackedBlocks` ADD `blockTypeID` INT NOT NULL DEFAULT -1;";
+                        this.manageMySQL.updateQuery(query);
+                    }
+
+                    //check if indexes are there..
+                    query = "SHOW INDEX FROM `trackedBlocks`";
+                    result = null;
+                    result = this.manageMySQL.sqlQuery(query);
+
+                    Boolean hasPlacedBlockCount = false;
+                    Boolean hasRemovedBlockCount = false;
+                    Boolean hasXyz = false;
+                    Boolean hasXyzremove = false;
+
+                    while (result != null && result.next()) {
+                        String key = "";
+                        key = result.getString("Key_name");
+                        if ("placedBlockCount".equals(key)) {
+                            hasPlacedBlockCount = true;
+                        }
+                        if ("removedBlockCount".equals(key)) {
+                            hasRemovedBlockCount = true;
+                        }
+                        if ("xyz".equals(key)) {
+                            hasXyz = true;
+                        }
+                        if ("xyzremove".equals(key)) {
+                            hasXyzremove = true;
+                        }
+
+                    }
+
+                    if (!hasPlacedBlockCount || !hasRemovedBlockCount || !hasXyz || !hasXyzremove) {
+                        this.log.info("[WhoPlacedIt] Updating Database indexes (might take a bit of time if table is large)");
+
+                        query = "ALTER TABLE `trackedBlocks` ";
+                        queryExt = "";
+
+                        if (!hasPlacedBlockCount) {
+                            queryExt += "ADD INDEX `placedBlockCount` (`createTime`,`createPlayerUUID`)";
+                        }
+                        if (!hasRemovedBlockCount) {
+                            if (!"".equals(queryExt)) {
+                                queryExt += ", ";
+                            }
+                            queryExt += "ADD INDEX `removedBlockCount` (`removeTime`,`removePlayerUUID`)";
+                        }
+                        if (!hasXyz) {
+                            if (!"".equals(queryExt)) {
+                                queryExt += ", ";
+                            }
+                            queryExt += "ADD INDEX `xyz` (`x` ,`y` ,`z`)";
+                        }
+                        if (!hasXyzremove) {
+                            if (!"".equals(queryExt)) {
+                                queryExt += ", ";
+                            }
+                            queryExt += "ADD INDEX `xyzremove` ( `x` , `y` , `z` , `removeTime` )";
+                        }
+                        if (!"".equals(queryExt)) { //added extra check..
+                            this.manageMySQL.updateQuery(query + queryExt);
+                        }
+                    }
+                    this.log.info("[WhoPlacedIt] Database check complete.");
+
                 } else {
                     this.log.severe("[WhoPlacedIt] MySQL connection failed, falling back to sqlite");
                     this.mode = 2;
@@ -133,6 +266,8 @@ public class Storage {
                 log.info("[WhoPlacedIt] Error, something went wrong with the sql query");
             }
         }
+
+        //TODO: optimize SQLite
         if (this.mode == 2) {
             this.log.info("[WhoPlacedIt] SQLite Initializing");
 
@@ -145,12 +280,12 @@ public class Storage {
             // Check if the table exists, if it doesn't create it
             if (!this.manageSQLite.checkTable("trackedBlocks")) {
                 this.log.info("[WhoPlacedIt] Creating table trackedBlocks");
-                String query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT, cause VARCHAR(255) NOT NULL DEFAULT 'player');";
+                query = "CREATE TABLE trackedBlocks (id INT AUTO_INCREMENT PRIMARY_KEY, createPlayer VARCHAR(255), createPlayerUUID VARCHAR(255), removePlayer VARCHAR(255), removePlayerUUID VARCHAR(255), x INT, y INT, z INT, createTime BIGINT, removeTime BIGINT, cause VARCHAR(255) NOT NULL DEFAULT 'player');";
                 this.manageSQLite.createTable(query);
             }
 
-            String query = "SELECT * FROM trackedBlocks;";
-            ResultSet result = null;
+            query = "SELECT * FROM trackedBlocks LIMIT 0,1;";
+            result = null;
             result = this.manageSQLite.sqlQuery(query);
             ResultSetMetaData resultMetaData;
             try {
@@ -256,16 +391,18 @@ public class Storage {
      * @param createTime
      */
     public void placeBlock(Block block, Player player, long createTime) {
-        String query = "INSERT INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime, blockTypeID) VALUES ('"
-                + player.getName()
-                + "','"
-                + player.getUniqueId().toString()
-                + "', '','', "
-                + block.getX()
-                + ", "
-                + block.getY() + ", " + block.getZ() + ", " + createTime + ", " + 0 + ", " + block.getTypeId() + ");";
+        String query;
 
         if (this.mode == 1) {
+            query = "INSERT DELAYED INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime, blockTypeID) VALUES ('"
+                    + player.getName()
+                    + "','"
+                    + player.getUniqueId().toString()
+                    + "', '','', "
+                    + block.getX()
+                    + ", "
+                    + block.getY() + ", " + block.getZ() + ", " + createTime + ", " + 0 + ", " + block.getTypeId() + ");";
+
             try {
                 this.manageMySQL.insertQuery(query);
             } catch (MalformedURLException e) {
@@ -275,7 +412,15 @@ public class Storage {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (this.mode == 2) {
+            query = "INSERT INTO trackedBlocks (createPlayer, createPlayerUUID, removePlayer, removePlayerUUID, x, y, z, createTime, removeTime, blockTypeID) VALUES ('"
+                    + player.getName()
+                    + "','"
+                    + player.getUniqueId().toString()
+                    + "', '','', "
+                    + block.getX()
+                    + ", "
+                    + block.getY() + ", " + block.getZ() + ", " + createTime + ", " + 0 + ", " + block.getTypeId() + ");";
             this.manageSQLite.insertQuery(query);
         }
     }
@@ -287,7 +432,8 @@ public class Storage {
      * @param removeTime
      */
     public void removeBlock(Block block, Player player, long removeTime) {
-        String query = "UPDATE trackedBlocks SET removeTime = " + removeTime + ", removePlayer = '" + player.getName()
+        String query;
+        query = "UPDATE trackedBlocks SET removeTime = " + removeTime + ", removePlayer = '" + player.getName()
                 + "', removePlayerUUID = '" + player.getUniqueId().toString() + "', blockTypeID = " + block.getTypeId()
                 + " WHERE x = " + block.getX() + " AND y = " + block.getY() + " AND z = " + block.getZ()
                 + " AND removeTime = 0;";
@@ -301,13 +447,14 @@ public class Storage {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (this.mode == 2) {
             this.manageSQLite.updateQuery(query);
         }
     }
 
     public void burnBlock(Block block, long removeTime) {
-        String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
+        String query;
+        query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
                 + " AND z = " + block.getZ() + " AND removeTime = 0 LIMIT 1";
         ResultSet result = null;
 
@@ -321,7 +468,7 @@ public class Storage {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (this.mode == 2) {
             result = this.manageSQLite.sqlQuery(query);
         }
 
@@ -359,7 +506,7 @@ public class Storage {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (this.mode == 2) {
             this.manageSQLite.updateQuery(query);
         }
     }
@@ -372,7 +519,8 @@ public class Storage {
      * @return
      */
     public ArrayList<BlockInfo> getBlockInfo(Block block, Player player) {
-        String query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
+        String query;
+        query = "SELECT * FROM trackedBlocks WHERE x = " + block.getX() + " AND y = " + block.getY()
                 + " AND z = " + block.getZ() + " ORDER BY createTime DESC LIMIT ";
 
         if (properties.getProperty("enableHistory").equals("true")) {
@@ -393,7 +541,7 @@ public class Storage {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (this.mode == 2) {
             result = this.manageSQLite.sqlQuery(query);
         }
         try {
@@ -458,11 +606,13 @@ public class Storage {
     }
 
     public int getPlacedBlockCount(Player player) {
-        String query = "SELECT COUNT(id) AS rowcount FROM trackedBlocks WHERE createTime != '' AND createPlayerUUID = '"
-                + player.getUniqueId().toString() + "'";
+        String query;
         ResultSet result = null;
 
         if (this.mode == 1) {
+            query = "SELECT COUNT(*) AS `rowcount` FROM `trackedBlocks` WHERE `createTime` != '' AND `createPlayerUUID` = '"
+                    + player.getUniqueId().toString() + "'";
+
             try {
                 result = this.manageMySQL.sqlQuery(query);
             } catch (MalformedURLException e) {
@@ -472,7 +622,10 @@ public class Storage {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (this.mode == 2) {
+            query = "SELECT COUNT(*) AS rowcount FROM trackedBlocks WHERE createTime != '' AND createPlayerUUID = '"
+                    + player.getUniqueId().toString() + "'";
+
             result = this.manageSQLite.sqlQuery(query);
         }
         try {
@@ -486,11 +639,13 @@ public class Storage {
     }
 
     public int getRemovedBlockCount(Player player) {
-        String query = "SELECT COUNT(id) AS rowcount FROM trackedBlocks WHERE removeTime != '' AND removePlayerUUID = '"
-                + player.getUniqueId().toString() + "'";
+        String query;
         ResultSet result = null;
 
+
         if (this.mode == 1) {
+            query = "SELECT COUNT(*) AS `rowcount` FROM `trackedBlocks` WHERE `removeTime` != '' AND `removePlayerUUID` = '"
+                    + player.getUniqueId().toString() + "'";
             try {
                 result = this.manageMySQL.sqlQuery(query);
             } catch (MalformedURLException e) {
@@ -500,7 +655,10 @@ public class Storage {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        } else {
+
+        } else if (this.mode == 2) {
+            query = "SELECT COUNT(*) AS rowcount FROM trackedBlocks WHERE removeTime != '' AND removePlayerUUID = '"
+                    + player.getUniqueId().toString() + "'";
             result = this.manageSQLite.sqlQuery(query);
         }
         try {
