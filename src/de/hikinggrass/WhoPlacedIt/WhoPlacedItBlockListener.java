@@ -2,12 +2,13 @@ package de.hikinggrass.WhoPlacedIt;
 
 import java.util.logging.Logger;
 
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-public class WhoPlacedItBlockListener extends BlockListener {
+public class WhoPlacedItBlockListener implements Listener {
 
     public static WhoPlacedIt plugin;
     protected Logger log;
@@ -19,17 +20,17 @@ public class WhoPlacedItBlockListener extends BlockListener {
         this.manager = manager;
     }
 
-    @Override
+    @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         manager.placeBlock(event.getBlockPlaced(), event.getPlayer());
     }
 
-    @Override
+    @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         manager.removeBlock(event.getBlock(), event.getPlayer());
     }
 
-    @Override
+    @EventHandler
     public void onBlockBurn(BlockBurnEvent event) {
         manager.burnBlock(event.getBlock());
     }
